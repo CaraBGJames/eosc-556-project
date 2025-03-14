@@ -1,2 +1,5 @@
-# eosc-556-project
-Project for EOSC 556 Geophysical Inversion Class
+# Ground-based DC resistivity for permafrost
+
+_Cara James_
+
+My project for EOSC 556 geophysical inversion class
