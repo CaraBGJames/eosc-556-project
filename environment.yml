@@ -10,3 +10,9 @@ dependencies:
   - matplotlib
   - python=3.11
   - pytest
+
+  # solver
+# uncomment the next line if you are on an intel platform
+#  - pydiso # if on intel pc
+# uncomment this line if you want to install mumps solvers
+ - python-mumps
