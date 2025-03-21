@@ -69,9 +69,6 @@ def make_permafrost_model(mesh, topo_2d, plot=True):
     # Indices of the active mesh cells from topography (e.g. cells below surface)
     active_cells = active_from_xyz(mesh, topo_2d)
 
-    # # number of active cells
-    # n_active = np.sum(active_cells)
-
     # define the model
     air_cond = 1e-8
     active_layer_cond = 1 / 50
@@ -113,7 +110,7 @@ def make_permafrost_model(mesh, topo_2d, plot=True):
             ax2, norm=norm, orientation="vertical", cmap=mpl.cm.RdYlBu_r
         )
         cbar.set_label(r"$\sigma$ (S/m)", rotation=270, labelpad=15, size=12)
-    return active_cells, conductivity_map
+    return active_cells, conductivity_map, conductivity_model
 
 
 def generate_dcdata_from_res2dinv(file_path, std_method="measured"):

@@ -8,10 +8,20 @@ from functions import (
     plot_3_pseudosections,
 )
 from simpeg.electromagnetics.static import resistivity as dc
-from simpeg.utils import model_builder
-from simpeg import maps
+from simpeg import (
+    maps,
+    data_misfit,
+    regularization,
+    optimization,
+    inverse_problem,
+    inversion,
+    directives,
+)
 from discretize.utils import active_from_xyz
-from matplotlib.colors import LogNorm
+from simpeg.electromagnetics.static.utils.static_utils import (
+    plot_pseudosection,
+    apparent_resistivity_from_voltage,
+)
 
 mpl.rcParams.update({"font.size": 14})  # default font size
 cmap = mpl.cm.RdYlBu_r  # default colormap
@@ -26,19 +36,64 @@ z_topo = np.zeros_like(x_topo)
 topo_2d = np.c_[x_topo, z_topo]
 
 # have a pre-look at the data, errors, apparent resistivity
-plot_3_pseudosections(voltage_data)
+# plot_3_pseudosections(voltage_data)
 
 # Design a (tree) mesh
-mesh = build_tree_mesh(voltage_data, topo_2d, plot=True)
+mesh = build_tree_mesh(voltage_data, topo_2d, plot=False)
 
-# make model and plot
-active_cells, conductivity_map = make_permafrost_model(mesh, topo_2d, plot=True)
+# make a starting model and plot
+active_cells, conductivity_map, conductivity_model = make_permafrost_model(
+    mesh, topo_2d, plot=False
+)
 
 voltage_data.survey.drape_electrodes_on_topography(mesh, active_cells, option="top")
 
-# DC simulation for a conductivity model
-simulation_con = dc.simulation_2d.Simulation2DNodal(
-    mesh, survey=voltage_data.survey, sigmaMap=conductivity_map
+# Map model parameters to all cells
+log_conductivity_map = maps.InjectActiveCells(mesh, active_cells, 1e-8) * maps.ExpMap(
+    nP=np.sum(active_cells)
 )
 
-plt.show()
+voltage_simulation = dc.simulation_2d.Simulation2DNodal(
+    mesh, survey=voltage_data.survey, sigmaMap=log_conductivity_map, storeJ=True
+)
+
+dmis_L2 = data_misfit.L2DataMisfit(simulation=voltage_simulation, data=voltage_data)
+
+reg_L2 = regularization.WeightedLeastSquares(
+    mesh,
+    active_cells=active_cells,
+    alpha_s=1**-2,
+    alpha_x=1,
+    alpha_y=1,
+    reference_model=conductivity_model,
+    reference_model_in_smooth=False,
+)
+
+opt_L2 = optimization.InexactGaussNewton(
+    maxIter=40, maxIterLS=20, maxIterCG=20, tolCG=1e-3
+)
+
+inv_prob_L2 = inverse_problem.BaseInvProblem(dmis_L2, reg_L2, opt_L2)
+
+sensitivity_weights = directives.UpdateSensitivityWeights(
+    every_iteration=True, threshold_value=1e-2
+)
+update_jacobi = directives.UpdatePreconditioner(update_every_iteration=True)
+starting_beta = directives.BetaEstimate_ByEig(beta0_ratio=10)
+beta_schedule = directives.BetaSchedule(coolingFactor=2.0, coolingRate=2)
+target_misfit = directives.TargetMisfit(chifact=1.0)
+
+directives_list_L2 = [
+    sensitivity_weights,
+    update_jacobi,
+    starting_beta,
+    beta_schedule,
+    target_misfit,
+]
+
+# Here we combine the inverse problem and the set of directives
+inv_L2 = inversion.BaseInversion(inv_prob_L2, directives_list_L2)
+
+# Run the inversion
+# recovered_model_L2 = inv_L2.run(np.log(0.01) * np.ones(n_param))
+recovered_log_conductivity_model = inv_L2.run(conductivity_model)
