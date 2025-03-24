@@ -209,7 +209,33 @@ def generate_dcdata_from_res2dinv(file_path, std_method="measured"):
     # Plot electrode positions
     plot_electrode_positions(topo, electrodes)
 
-    return dc_data
+    return dc_data, topo
+
+
+def interpolate_values(topo, n):
+    """
+    Interpolates between given x and z values to generate n equally spaced points.
+
+    Parameters:
+    topo (array-like): Nx2 array where the first column is x values and the second column is z values.
+    n (int): Number of interpolated points.
+
+    Returns:
+    array: Nx2 array with interpolated [x, z] values.
+    """
+    # Extract x and z values
+    x_vals, z_vals = topo[:, 0], topo[:, 1]
+
+    # Generate new equally spaced x values
+    new_x = np.linspace(min(x_vals), max(x_vals), n)
+
+    # Interpolate z values at new_x points
+    new_z = np.interp(new_x, x_vals, z_vals)
+
+    # Combine into Nx2 array
+    new_topo = np.c_[new_x, new_z]
+
+    return new_topo
 
 
 def build_tree_mesh(voltage_data, topo_2d, plot=True):
