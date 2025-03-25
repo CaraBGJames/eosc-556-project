@@ -47,7 +47,7 @@ conda activate eosc-556-project
 
 **[.gitignore](.gitignore)** - plain text file to selectively save/upload files to github.
 
-**[LICENSE.md](LICENSE.md)** - M.I.T. License file (see [License](#license)).
+**[LICENSE](LICENSE)** - M.I.T. License file (see [License](#license)).
 
 **[test_linear_prob.py](test_linear_prob.py)** - test file originally used for testing linear problem code, in future will contain tests for the files in this project, but currently outdated.
 
@@ -57,4 +57,4 @@ conda activate eosc-556-project
 **.github/workflows** - contains files to carry out automatic testing of code when uploaded to github
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
