@@ -35,21 +35,21 @@ conda activate eosc-556-project
 ## Files and folders
 
 ### Files:
-**[inversion_testing_permafrost.ipynb](#inversion_testing.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. 
+**[inversion_testing_permafrost.ipynb](inversion_testing.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. 
 
-**[forward_sim_permafrost.py](#forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
+**[forward_sim_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
 
-**[inverse_model_permafrost.py](#forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
+**[inverse_model_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
 
-**[functions.py](#functions.py)** - contains all functions used in the other .py files.
+**[functions.py](functions.py)** - contains all functions used in the other .py files.
 
-**[environment.yml](#environment.yml)** - environment file containing all dependencies needed to run this project.
+**[environment.yml](environment.yml)** - environment file containing all dependencies needed to run this project.
 
-**[.gitignore](#.gitignore)** - plain text file to selectively save/upload files to github.
+**[.gitignore](.gitignore)** - plain text file to selectively save/upload files to github.
 
-**[LICENSE](#LICENSE)** - M.I.T. License file (see [License](#license)).
+**[LICENSE](LICENSE)** - M.I.T. License file (see [License](#license)).
 
-**[test_linear_prob.py](#test_linear_prob.py)** - test file originally used for testing linear problem code, in future will contain tests for the files in this project, but currently outdated.
+**[test_linear_prob.py](test_linear_prob.py)** - test file originally used for testing linear problem code, in future will contain tests for the files in this project, but currently outdated.
 
 ### Folders:
 **data** - contains the *.dat DC resistivity data files in res2dinv format that are used to define the survey layout and carry out the inversions.
@@ -57,4 +57,4 @@ conda activate eosc-556-project
 **.github/workflows** - contains files to carry out automatic testing of code when uploaded to github
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](#LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
