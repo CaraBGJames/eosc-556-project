@@ -10,8 +10,8 @@ This project explores using DC resistivity data from the Canadian Arctic to inve
 
 ## Table of Contents
 - [Installation](#installation)
-- [Getting Started](#gettingstarted)
-- [Files and folders](#filesandfolders)
+- [Getting Started](#getting-started)
+- [Files and folders](#files-and-folders)
 - [License](#license)
 
 ## Installation
