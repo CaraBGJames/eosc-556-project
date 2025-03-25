@@ -54,5 +54,7 @@ conda activate eosc-556-project
 ### Folders:
 **data** - contains the *.dat DC resistivity data files in res2dinv format that are used to define the survey layout and carry out the inversions.
 
+**.github/workflows** - contains files to carry out automatic testing of code when uploaded to github
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
