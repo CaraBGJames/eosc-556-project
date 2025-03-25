@@ -35,13 +35,7 @@ conda activate eosc-556-project
 ## Files and folders
 
 ### Files:
-**[inversion_testing.ipynb](inversion_testing.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. This notebook uses the inv_dcr_2d_files data from the simpeg tutorial.
-
-**[simpeg_fwd_dcr_2d.ipynb](simpeg_fwd_dcr_2d.ipynb)** - Complete 2.5d forward simulation tutorial from Simpeg (unedited).\
- https://simpeg.xyz/user-tutorials/fwd-dcr-2d.
-
-**[simpeg_fwd_dcr_2d.ipynb](simpeg_fwd_dcr_2d.ipynb)** - Complete 2.5d  inversion tutorial from Simpeg (unedited).\
-https://simpeg.xyz/user-tutorials/inv-dcr-2d 
+**[inversion_testing_permafrost.ipynb](inversion_testing.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. 
 
 **[forward_sim_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
 
@@ -59,9 +53,6 @@ https://simpeg.xyz/user-tutorials/inv-dcr-2d
 
 ### Folders:
 **data** - contains the *.dat DC resistivity data files in res2dinv format that are used to define the survey layout and carry out the inversions.
-
-**inv_dcr_2d_files** - contains files used in Simpeg user tutorial.
-
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
