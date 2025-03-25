@@ -35,7 +35,7 @@ conda activate eosc-556-project
 ## Files and folders
 
 ### Files:
-**[inversion_testing_permafrost.ipynb](inversion_testing.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. 
+**[inversion_testing_permafrost.ipynb](inversion_testing_permafrost.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. 
 
 **[forward_sim_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
 
