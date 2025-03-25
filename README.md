@@ -31,7 +31,7 @@ conda activate eosc-556-project
 ## Getting started
 1. Open the jupyter notebook, follow along and run cells to see how it works.
 ```bash
-juptyer notebook inversion_testing_permafrost.ipynb
+jupyter notebook inversion_testing_permafrost.ipynb
 ```
 2. 🚧 WORK IN PROGRESS 🚧
 
