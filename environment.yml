@@ -10,7 +10,7 @@ dependencies:
   - matplotlib
   - python=3.11
   - pytest
-
+  - pandas
   # solver
 # uncomment the next line if you are on an intel platform
   # - pydiso # if on intel pc

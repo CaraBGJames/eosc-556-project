@@ -13,6 +13,51 @@ from simpeg.electromagnetics.static.utils.static_utils import (
     plot_pseudosection,
     apparent_resistivity_from_voltage,
 )
+from scipy.interpolate import interp1d
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    """Compute Haversine distance between two lat/lon points."""
+    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+    return 2 * 6371000 * np.arcsin(np.sqrt(a))
+
+
+def create_topo(file_path, topo_from_dat, n_points, flat=False):
+    """
+    Reads in the topography from the Google earth exported file, ignores lat and long.
+    """
+    x_vals = topo_from_dat[:, 0]
+    x_min = np.min(x_vals)
+    x_max = np.max(x_vals)
+    topo_x = np.linspace(x_min, x_max, n_points)
+
+    if flat is False:
+        # Load data from txt file (assuming tab or space delimiter, skipping header)
+        data = np.loadtxt(file_path, skiprows=1, usecols=(1, 2, 3))
+
+        # Extract latitude, longitude, and altitude
+        lat, lon, alt = data[:, 0], data[:, 1], data[:, 2]
+
+        # Compute cumulative distance along the track (approximate using Haversine formula)
+        distances = np.zeros(len(lat))
+        for i in range(1, len(lat)):
+            distances[i] = distances[i - 1] + haversine(
+                lat[i - 1], lon[i - 1], lat[i], lon[i]
+            )
+
+        # Interpolate elevation profile at n_points equally spaced distances
+        interp_func = interp1d(distances, alt, kind="cubic")  # Smooth interpolation
+        topo_z = interp_func(topo_x)
+
+    else:
+        topo_z = np.zeros_like(topo_x)
+
+    topo_2d = np.c_((topo_x, topo_z))
+
+    return topo_2d
 
 
 def plot_3_pseudosections(voltage_data):
@@ -210,32 +255,6 @@ def generate_dcdata_from_res2dinv(file_path, std_method="measured"):
     plot_electrode_positions(topo, electrodes)
 
     return dc_data, topo
-
-
-def interpolate_values(topo, n):
-    """
-    Interpolates between given x and z values to generate n equally spaced points.
-
-    Parameters:
-    topo (array-like): Nx2 array where the first column is x values and the second column is z values.
-    n (int): Number of interpolated points.
-
-    Returns:
-    array: Nx2 array with interpolated [x, z] values.
-    """
-    # Extract x and z values
-    x_vals, z_vals = topo[:, 0], topo[:, 1]
-
-    # Generate new equally spaced x values
-    new_x = np.linspace(min(x_vals), max(x_vals), n)
-
-    # Interpolate z values at new_x points
-    new_z = np.interp(new_x, x_vals, z_vals)
-
-    # Combine into Nx2 array
-    new_topo = np.c_[new_x, new_z]
-
-    return new_topo
 
 
 def build_tree_mesh(voltage_data, topo_2d, plot=True):
