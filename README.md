@@ -19,7 +19,15 @@ This project explores using DC resistivity data from the Canadian Arctic to inve
 ```bash
 git clone https://github.com/CaraBGJames/eosc-556-project.git
 ```
-2. Create environment from included yml file
+2. Edit lines in environment file for windows/mac machine
+```bash
+# uncomment the next line if you are on an intel platform
+  # - pydiso # if on intel pc
+# uncomment this line if you want to install mumps solvers (mac)
+  - python-mumps
+```
+
+3. Create environment from included yml file
 ```bash
 conda env create -f environment.yml
 ```
