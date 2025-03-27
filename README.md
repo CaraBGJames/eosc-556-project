@@ -19,7 +19,7 @@ This project explores using DC resistivity data from the Canadian Arctic to inve
 ```bash
 git clone https://github.com/CaraBGJames/eosc-556-project.git
 ```
-2. Edit lines in environment file for windows/mac machine
+2. Open environment.yml file and comment out corresponding line for your windows/mac machine
 ```bash
 # uncomment the next line if you are on an intel platform
   # - pydiso # if on intel pc
