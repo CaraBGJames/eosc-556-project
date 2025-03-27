@@ -27,7 +27,7 @@ git clone https://github.com/CaraBGJames/eosc-556-project.git
   - python-mumps
 ```
 
-3. Create environment from included yml file
+3. Enter the repository folder ```cd eosc-556-project```, then create environment from included yml file
 ```bash
 conda env create -f environment.yml
 ```
