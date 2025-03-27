@@ -50,7 +50,7 @@ jupyter notebook inversion_testing_permafrost.ipynb
 
 **[forward_sim_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
 
-**[inverse_model_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
+**[inverse_model_permafrost.py](inverse_model_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
 
 **[functions.py](functions.py)** - contains all functions used in the other .py files.
 
