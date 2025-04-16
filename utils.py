@@ -1,6 +1,6 @@
 import numpy as np
 from simpeg.utils import model_builder
-from discretize import TreeMesh
+from discretize import TreeMesh, TensorMesh
 from simpeg.electromagnetics.static.utils.static_utils import (
     generate_survey_from_abmn_locations,
     apparent_resistivity_from_voltage,
@@ -10,8 +10,83 @@ from simpeg import maps, data
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+import glob
+import os
 
 mpl.rcParams.update({"font.size": 14})  # default font size
+
+
+def load_all_models(directory):
+    """
+    Load all .npy inversion model files from a directory into a list.
+
+    Parameters:
+    -----------
+    directory : str
+        Directory containing .npy inversion model files.
+
+    Returns:
+    --------
+    models : list of np.ndarray
+        List of 1D numpy arrays, one per model.
+    """
+    files = sorted(glob.glob(os.path.join(directory, "*InversionModel*.npy")))
+
+    if not files:
+        print(f"No model files found in {directory}")
+        return []
+
+    models = [np.load(f) for f in files]
+    return models
+
+
+def plot_tikhonov_curves_from_file(file_pattern, target_misfit=None):
+    # Read the data from the file
+    similar_files = sorted(
+        glob.glob(os.path.join(".", file_pattern))
+    )  # , key=lambda f: os.path.getmtime(f)) # can sort by time instead
+
+    if not similar_files:
+        print("No model data files found")
+        return []
+
+    # get last file (youngest)
+    file_path = similar_files[-1]
+    data = np.loadtxt(file_path, comments="#")
+
+    # Extract columns: Assuming beta, phi_d, phi_m are in the first 3 columns
+    beta = data[:, 1]  # 1st column is beta
+    phi_d = data[:, 2]  # 2nd column is phi_d
+    phi_m = data[:, 3]  # 3rd column is phi_m
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6, 10))
+
+    ax1.plot(beta, phi_d, "o-k")
+    ax2.plot(beta, phi_m, "o-k")
+    ax3.plot(phi_m, phi_d, "o-k")
+
+    if target_misfit is not None:
+        ax1.axhline(target_misfit, color="red", linestyle="--")
+        ax3.axhline(target_misfit, color="red", linestyle="--")
+
+    ax1.set_xscale("log")
+    ax1.set_xlim(ax1.get_xlim()[::-1])
+    ax2.set_xscale("log")
+    ax2.set_xlim(ax2.get_xlim()[::-1])
+
+    ax1.set_ylabel("ϕd")
+    ax2.set_ylabel("ϕm")
+    ax3.set_ylabel("ϕd")
+    ax3.set_xlabel("ϕm")
+
+    ax1.set_title("Tikhonov Trade-off Curves")
+    for ax in (ax1, ax2, ax3):
+        ax.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+    return beta, phi_d, phi_m
 
 
 def plot_results(
@@ -21,6 +96,8 @@ def plot_results(
     model_to_plot,
     title="Resistivity model",
     cmap=mpl.cm.jet,
+    vmin=1e2,
+    vmax=1e5,
 ):
     """
     Plot a 2D resistivity model on a mesh.
@@ -39,7 +116,7 @@ def plot_results(
     # Plot results
     fig = plt.figure(figsize=(9, 4))
 
-    norm = LogNorm(vmin=1e2, vmax=1e5)
+    norm = LogNorm(vmin=vmin, vmax=vmax)
 
     ax1 = fig.add_axes([0.14, 0.17, 0.68, 0.7])
     mesh.plot_image(
@@ -49,7 +126,7 @@ def plot_results(
         pcolor_opts={"norm": norm, "cmap": cmap},
     )
     ax1.set_xlim(np.min(topo_2d[:, 0]), np.max(topo_2d[:, 0]))
-    ax1.set_ylim(np.max(topo_2d[:, 1]) - 200, np.max(topo_2d[:, 1] + 5))
+    ax1.set_ylim(np.max(topo_2d[:, 1]) - 100, np.max(topo_2d[:, 1] + 5))
     ax1.set_title(title)
     ax1.set_xlabel("x (m)")
     ax1.set_ylabel("z (m)")
@@ -115,38 +192,53 @@ def build_model(mesh, active_cells):
 
     Returns:
         tuple: (resistivity_model, resistivity_map, plotting_map)
-            - resistivity_model (ndarray): 1D array of resistivity values.
-            - resistivity_map (Map): Map to inject air resistivity into inactive cells.
+            - log_resistivity_model (ndarray): 1D array of resistivity values.
+            - log_resistivity_map (Map): Map to inject air resistivity into inactive cells.
             - plotting_map (Map): Map to inject NaN into inactive cells for plotting.
     """
     n_active = np.sum(active_cells)
 
     # Make model
     air_resistivity = 1e8
-    permafrost_resistivity = 600
-    bedrock_resistivity = 10000
-    ice_resistivity = 1000
-    unfrozen_resistivity = 400
+    permafrost_resistivity = 50
+    bedrock_resistivity = 1e4  # 10000
+    ice_resistivity = 1e5
+    unfrozen_resistivity = 100
 
     # Define conductivity model
-    resistivity_model = bedrock_resistivity * np.ones(n_active)
+    resistivity_model = permafrost_resistivity * np.ones(n_active)
+
+    # resistivity_model = model_builder.create_2_layer_model(
+    #     mesh, 10, unfrozen_resistivity, permafrost_resistivity
+    # )
+
+    # resistivity_model = model_builder.create_layers_model(
+    #     mesh,
+    #     layer_tops=np.array([0, -50]),
+    #     layer_values=np.array([permafrost_resistivity, bedrock_resistivity]),
+    # )
 
     ind_ice = model_builder.get_indices_block(
-        np.r_[80, -60], np.r_[250, -30], mesh.cell_centers[active_cells, :]
+        np.r_[150, 0], np.r_[180, -30], mesh.cell_centers[active_cells, :]
     )
-    resistivity_model[ind_ice] = ice_resistivity
+    resistivity_model[ind_ice] = 10 ** (4)
 
-    ind_ice_wedge = model_builder.get_indices_block(
-        np.r_[350, -80], np.r_[360, -10], mesh.cell_centers[active_cells, :]
-    )
-    resistivity_model[ind_ice_wedge] = ice_resistivity
+    # ind_ice_wedge = model_builder.get_indices_block(
+    #     np.r_[350, -80], np.r_[360, -5], mesh.cell_centers[active_cells, :]
+    # )
+    # resistivity_model[ind_ice_wedge] = ice_resistivity
 
-    resistivity_map = maps.InjectActiveCells(mesh, active_cells, air_resistivity)
+    # convert to log space
+    log_resistivity_model = np.log(resistivity_model)
+
+    log_resistivity_map = maps.InjectActiveCells(
+        mesh, active_cells, np.log(air_resistivity)
+    ) * maps.ExpMap(nP=n_active)
 
     # Generate a mapping to ignore inactice cells in plot
     plotting_map = maps.InjectActiveCells(mesh, active_cells, np.nan)
 
-    return resistivity_model, resistivity_map, plotting_map
+    return log_resistivity_model, log_resistivity_map, plotting_map
 
 
 def build_mesh(topo_2d):
@@ -191,6 +283,49 @@ def build_mesh(topo_2d):
     )
 
     mesh.finalize()
+
+    # Indices of the active mesh cells from topography (e.g. cells below surface)
+    active_cells = active_from_xyz(mesh, topo_2d)
+
+    return mesh, active_cells
+
+
+def build_tensor_mesh(
+    topo_2d,
+    dx=5,
+    dz=5,
+    width=470,
+    depth=100,
+):
+    """
+    Create a 2D TensorMesh with roughly 5m cell sizes,
+    extending 500m wide and 100m deep.
+
+    Parameters:
+    -----------
+    dx : float
+        Horizontal cell size (default 5m)
+    dz : float
+        Vertical cell size (default 5m)
+    width : float
+        Total width of the mesh in meters
+    depth : float
+        Total depth of the mesh in meters
+
+    Returns:
+    --------
+    mesh : discretize.TensorMesh
+        The generated 2D TensorMesh
+    """
+    nx = int(width / dx)
+    nz = int(depth / dz)
+
+    # Cell widths (uniform)
+    hx = dx * np.ones(nx)
+    hz = dz * np.ones(nz)
+
+    # Origin: top left corner (z positive up)
+    mesh = TensorMesh([hx, hz], x0=[0, -depth])  # start x=0, z starts at -depth
 
     # Indices of the active mesh cells from topography (e.g. cells below surface)
     active_cells = active_from_xyz(mesh, topo_2d)

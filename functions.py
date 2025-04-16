@@ -158,9 +158,13 @@ def make_permafrost_model(mesh, topo_2d, plot=True):
     return active_cells, conductivity_map, conductivity_model
 
 
-def generate_dcdata_from_res2dinv(file_path, std_method="measured"):
+def generate_dcdata_from_res2dinv_with_topo(
+    file_path,
+    n_points=401,
+):
     """
-    Extracts electrode positions, resistivity and error data from a RES2DINV .dat file and generates a survey using SimPEG's generate_survey_from_abmn_locations function.
+    Extracts electrode positions, resistivity and error data from a RES2DINV .dat file,
+    and generates a survey using SimPEG's generate_survey_from_abmn_locations function.
 
     This function reads a resistivity survey file in RES2DINV format and extracts:
     - Electrode coordinates (X, Z) for each measurement
@@ -173,13 +177,11 @@ def generate_dcdata_from_res2dinv(file_path, std_method="measured"):
     ----------
     file_path : str
         Path to the .dat file containing the resistivity survey data.
-    std_method : str, optional
-        "measured" to use the given uncertainty for each data point
-        "constant" to use a constant percentage error for all points of 5% (default is "measured").
 
     Returns
     -------
     dc_data : SimPEG `data.Data` object containing the survey and resistivity values.
+    topo_profile : 2d array of x and z of topography spread out 4x as wide as the electrode points
 
     Example:
     -------
@@ -215,15 +217,21 @@ def generate_dcdata_from_res2dinv(file_path, std_method="measured"):
             dobs[i] = float(values[9])  # Apparent resistivity
             error[i] = float(values[10])  # Error percentage
 
-    # Extract unique topography points (electrode locations) and center around 0
-    electrodes = np.vstack((A, B, M, N))
-    midpoint_electrodes = (np.max(electrodes[:, 0]) - np.min(electrodes[:, 0])) / 2
-    electrodes[:, 0] = electrodes[:, 0] - midpoint_electrodes
-    topo = np.unique(electrodes, axis=0)  # Remove duplicates
-    A[:, 0] -= midpoint_electrodes
-    B[:, 0] -= midpoint_electrodes
-    M[:, 0] -= midpoint_electrodes
-    N[:, 0] -= midpoint_electrodes
+    # Store all arrays in a list for easy iteration
+    arrays = [A, B, M, N]
+
+    # Compute the midpoint of all x-coordinates
+    all_x_coords = np.concatenate([arr[:, 0] for arr in arrays])
+    midpoint_electrodes = np.mean(
+        [np.min(all_x_coords), np.max(all_x_coords)]
+    )  # Equivalent to (min + max) / 2
+
+    # Adjust x-coordinates
+    for arr in arrays:
+        arr[:, 0] -= midpoint_electrodes
+
+    # Combine all electrodes into a single array and remove duplicates
+    electrodes = np.unique(np.vstack(arrays), axis=0)
 
     # Generate the survey
     survey = generate_survey_from_abmn_locations(
@@ -234,27 +242,18 @@ def generate_dcdata_from_res2dinv(file_path, std_method="measured"):
         data_type="volt",
     )
 
-    # Determine the standard deviation for the error
-    if std_method == "measured":
-        # Use relative_error: measured error percentages
-        relative_error = np.abs(error) / 100  # Convert error to decimal percentage
-        dc_data = data.Data(
-            survey, dobs=dobs, noise_floor=1e-7, relative_error=relative_error
-        )
-    elif std_method == "constant":
-        # Use relative_error with constant percentage (e.g., 5%)
-        std = 1e-7 + 0.05 * np.abs(dobs)  # 5% constant error
-        dc_data = data.Data(survey, dobs=dobs, standard_deviation=std)
-    else:
-        # Handle the case when an invalid `std_method` is passed
-        warnings.warn("Invalid std_method. Defaulting to 'measured'.")
-        relative_error = np.abs(error) / 100  # Default to measured error
-        dc_data = data.Data(survey, dobs=dobs, relative_error=relative_error)
+    std = 1e-7 + 0.05 * np.abs(dobs)  # 5% constant error
+    dc_data = data.Data(survey, dobs=dobs, standard_deviation=std)
+
+    topo_profile = np.zeros((n_points, 2))
+    topo_profile[:, 0] = np.linspace(
+        -midpoint_electrodes * 4, midpoint_electrodes * 4, n_points
+    )
 
     # Plot electrode positions
-    plot_electrode_positions(topo, electrodes)
+    plot_electrode_positions(topo_profile, electrodes)
 
-    return dc_data, topo
+    return dc_data, topo_profile
 
 
 def build_tree_mesh(voltage_data, topo_2d, plot=True):
@@ -289,7 +288,7 @@ def build_tree_mesh(voltage_data, topo_2d, plot=True):
     max_spacing = np.max(electrode_x) - np.min(electrode_x)
     min_spacing = np.min(np.diff(np.sort(electrode_x)))
 
-    cell_size = min_spacing / 10  # base cell width
+    cell_size = min_spacing / 2  # base cell width
     dom_width_x = max_spacing * 8  # domain width x
     dom_width_z = max_spacing * 8  # domain width z
 
@@ -318,6 +317,58 @@ def build_tree_mesh(voltage_data, topo_2d, plot=True):
     # Mesh refinement near electrodes.
     mesh.refine_points(
         unique_locations, padding_cells_by_level=[10, 15, 8, 8], finalize=False
+    )
+
+    mesh.finalize()
+
+    if plot:
+        # plot mesh
+        fig = plt.figure(figsize=(10, 4))
+        ax1 = fig.add_axes([0.14, 0.17, 0.8, 0.7])
+        mesh.plot_grid(ax=ax1, linewidth=1)
+        ax1.grid(False)
+        ax1.set_xlim(-1500, 1500)
+        ax1.set_ylim(np.max(topo_2d[:, 1]) - 1000, np.max(topo_2d[:, 1]))
+        ax1.set_title("Mesh")
+        ax1.set_xlabel("x (m)")
+        ax1.set_ylabel("z (m)")
+        ax1.plot(topo_2d[:, 0], topo_2d[:, 1], "k-")
+
+    return mesh
+
+
+def build_new_tree_mesh(voltage_data, topo_2d, plot=True):
+    dh = 5  # base cell width
+    dom_width_x = 3200.0  # domain width x
+    dom_width_z = 2400.0  # domain width z
+    nbcx = 2 ** int(
+        np.round(np.log(dom_width_x / dh) / np.log(2.0))
+    )  # num. base cells x
+    nbcz = 2 ** int(
+        np.round(np.log(dom_width_z / dh) / np.log(2.0))
+    )  # num. base cells z
+
+    # Define the base mesh with top at z = 0 m.
+    hx = [(dh, nbcx)]
+    hz = [(dh, nbcz)]
+    mesh = TreeMesh([hx, hz], x0="CN", diagonal_balance=True)
+
+    # Shift top to maximum topography
+    mesh.origin = mesh.origin + np.r_[0.0, topo_2d[:, 1].max()]
+
+    # Mesh refinement based on topography
+    mesh.refine_surface(
+        topo_2d,
+        padding_cells_by_level=[0, 0, 4, 4],
+        finalize=False,
+    )
+
+    # Extract unique electrode locations.
+    unique_locations = voltage_data.survey.unique_electrode_locations
+
+    # Mesh refinement near electrodes.
+    mesh.refine_points(
+        unique_locations, padding_cells_by_level=[8, 12, 6, 6], finalize=False
     )
 
     mesh.finalize()
