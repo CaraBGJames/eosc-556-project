@@ -52,7 +52,7 @@ Enjoy!
 ## Files and folders
 
 ### Files:
-**[testing_synthetic_inversion.ipynb](testing_synthetic_inversion.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. However, please note that this notebook is not the latest and neatest version of the code, which can be found in the two files below:
+**[testing_synthetic_inversion.ipynb](testing_synthetic_inversion.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `invert_synth_data.py` and `invert_real_data.py` from command line, or editing the code yourself. However, please note that this notebook is not the latest and neatest version of the code.
 
 **[invert_synth_data.py](invert_synth_data.py)** - Python file that when called reads the survey layout from the supplied res2dat file, builds a model (defined in utils.py), forward synthesized the data from the model, then adds noise and inverts this 'synthetic' observed data to test my inversion parameters. Final version.
 
