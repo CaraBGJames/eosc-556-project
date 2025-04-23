@@ -37,22 +37,28 @@ conda activate eosc-556-project
 ```
 
 ## Getting started
-1. Open the jupyter notebook, follow along and run cells to see how it works.
+If you like, you can open the jupyter notebook, follow along and run cells to see how it works.
 ```bash
 jupyter notebook inversion_testing_permafrost.ipynb
 ```
-2. 🚧 WORK IN PROGRESS 🚧
+
+Alternatively, you can just run the invert_synth_data.py or invert_real_data.py scripts directly from your terminal using
+```bash
+python invert_real_data.py
+```
+
+Enjoy!
 
 ## Files and folders
 
 ### Files:
-**[inversion_testing_permafrost.ipynb](inversion_testing_permafrost.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. 
+**[testing_synthetic_inversion.ipynb](testing_synthetic_inversion.ipynb)** - Original Jupyter Notebook used to test simpeg functionality for both the forward and inversion steps. This file has more comments and instructions explaining what each step is doing. This is a **good place to start** to understand the layout of the project before running the `forward_sim_permafrost.py` and `inverse_model_permafrost.py` from command line, or editing the code yourself. However, please note that this notebook is not the latest and neatest version of the code, which can be found in the two files below:
 
-**[forward_sim_permafrost.py](forward_sim_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
+**[invert_synth_data.py](invert_synth_data.py)** - Python file that when called reads the survey layout from the supplied res2dat file, builds a model (defined in utils.py), forward synthesized the data from the model, then adds noise and inverts this 'synthetic' observed data to test my inversion parameters. Final version.
 
-**[inverse_model_permafrost.py](inverse_model_permafrost.py)** - 🚧 WORK IN PROGRESS CHECK BACK SOON. 🚧
+**[invert_real_data.py](invert_real_data.py)** - Python file that reads in the res2dat survey layout and observed data and inverts for subsurface structure. Final version.
 
-**[functions.py](functions.py)** - contains all functions used in the other .py files.
+**[utils.py](utils.py)** - contains all functions used in the other .py files.
 
 **[environment.yml](environment.yml)** - environment file containing all dependencies needed to run this project.
 
@@ -60,7 +66,7 @@ jupyter notebook inversion_testing_permafrost.ipynb
 
 **[LICENSE](LICENSE)** - M.I.T. License file (see [License](#license)).
 
-**[test_linear_prob.py](test_linear_prob.py)** - test file originally used for testing linear problem code, in future will contain tests for the files in this project, but currently outdated.
+**[test_linear_prob.py](test_linear_prob.py)** - test file originally used for testing linear problem code, the goal was it would contain tests for the files in this project, but currently outdated.
 
 ### Folders:
 **data** - contains the *.dat DC resistivity data files in res2dinv format that are used to define the survey layout and carry out the inversions.
