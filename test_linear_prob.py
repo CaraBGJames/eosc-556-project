@@ -1,5 +1,5 @@
 import numpy as np
-from functions import kernel_function
+from utils import kernel_function
 
 n_cells = 100
 n_nodes = n_cells + 1
